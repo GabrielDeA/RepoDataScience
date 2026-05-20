@@ -1,0 +1,171 @@
+1. General Structure of the Dataset
+
+Does your dataset contain variables that are not immediately usable by a machine learning algorithm?
+Answer: Yes
+Evidence: As colunas entity, code, continent e sub_region sao textuais/categoricas e precisam ser codificadas antes de qualquer modelo numerico.
+
+Are there columns that represent dates, categories, texts, codes, or identifiers?
+Answer: Yes
+Evidence: year representa tempo, entity/continent/sub_region sao categorias, e code e um identificador ISO 3166-1 alpha-3.
+
+Are some variables useful in theory, but poorly represented in their current form?
+Answer: Yes
+Evidence: entity tem 262 valores unicos (paises e agregados misturados), o que e pouco util cru. continent/sub_region resumem melhor a mesma informacao geografica.
+
+Are there variables that may need to be combined, transformed, or simplified?
+Answer: Yes
+Evidence: entity poderia ser simplificada agrupando por continent; year pode ser binarizado por decada ou periodo historico para reduzir ruido.
+
+
+2. Numerical Features
+
+Do numerical variables have very different scales?
+Answer: Yes
+Possible action: year varia de 1751 a 2023, child_mortality_rate de 0.14 a 76.74 e fertility_rate_hist de 0.66 a 8.86. E necessario normalizar ou padronizar antes de algoritmos sensiveis a escala.
+
+Are some numerical variables strongly skewed?
+Answer: Yes
+Possible action: child_mortality_rate tem media 10.58 mas mediana 7.30 e maximo 76.74, indicando assimetria a direita. Transformacao logaritmica pode ajudar.
+
+Are there extreme values that may distort the analysis?
+Answer: Yes
+Possible action: A mortalidade infantil tem valores extremos historicos (paises em conflito ou periodos pre-1950). Considerar winsorizacao ou clipping nos quartis extremos.
+
+Are some numerical variables difficult to interpret in their raw form?
+Answer: No
+Possible action: Todas as variaveis numericas tem unidades claras (mortes por 100 nascidos vivos, filhos por mulher, ano).
+
+Do scatter plots suggest nonlinear relationships?
+Answer: Not sure
+Possible action: Na Lecture 7 a relacao fertility x mortality parece aproximadamente linear positiva, mas a relacao das duas com year sugere decaimento nao linear (mais proximo de exponencial). Pode valer testar features polinomiais.
+
+
+3. Categorical Features
+
+Does your dataset contain nominal categorical variables?
+Answer: Yes
+Possible action: entity, code, continent e sub_region sao nominais (sem ordem natural). One-hot encoding em continent e sub_region; entity precisa de tratamento especial pela alta cardinalidade.
+
+Does your dataset contain ordinal categorical variables?
+Answer: No
+Possible action: Nenhuma variavel categorica tem ordem intrinseca no dataset atual.
+
+Do some categorical variables have many distinct categories?
+Answer: Yes
+Possible action: entity tem 262 categorias unicas. Considerar agrupar por continent/sub_region ou usar frequency encoding.
+
+Are some categories too rare to be analytically useful?
+Answer: Yes
+Possible action: Algumas entidades agregadas (England and Wales, Scotland, grupos por renda) aparecem em poucos contextos e poderiam ser agrupadas em Other ou filtradas dependendo do objetivo.
+
+Would numerical encoding introduce a false order among categories?
+Answer: Yes
+Possible action: Codificar paises como 1,2,3 criaria uma ordem inexistente. Usar one-hot ou target encoding em vez de label encoding.
+
+
+4. Date and Time Features
+
+Does your dataset contain dates or timestamps?
+Answer: Yes
+Possible action: A coluna year e a unica variavel temporal. Pode-se extrair decada, periodo historico (pre/pos 1950) ou seculo.
+
+Is the time elapsed since an event more meaningful than the date itself?
+Answer: Not sure
+Possible action: Depende do objetivo. Anos desde um marco (ex: anos desde 1950, quando comeca a maioria dos dados) pode ser mais util do que o ano absoluto.
+
+Are there seasonal, weekly, or cyclical patterns?
+Answer: No
+Possible action: Os dados sao anuais, sem granularidade mensal ou semanal, entao nao ha sazonalidade sub-anual a capturar.
+
+Are previous values relevant to current outcomes?
+Answer: Yes
+Possible action: Por se tratar de serie temporal por pais, valores anteriores de mortality e fertility influenciam os atuais. Considerar lag features e medias moveis por entidade.
+
+
+5. Text Features
+
+Does your dataset contain open-ended text responses, comments, titles, descriptions, or reviews?
+Answer: No
+Possible action: Nao ha texto livre, apenas nomes de paises padronizados.
+
+Could text length, word count, or frequency of terms be informative?
+Answer: No
+Possible action: Nao aplicavel.
+
+Are specific words or expressions analytically relevant?
+Answer: No
+Possible action: Nao aplicavel.
+
+Is semantic similarity between texts important?
+Answer: No
+Possible action: Nao aplicavel.
+
+Are texts too noisy or inconsistent?
+Answer: No
+Possible action: Os nomes de entidades ja foram padronizados na etapa de limpeza (DataSetCleaning).
+
+
+6. Redundancy and Dimensionality
+
+Do some variables measure almost the same thing?
+Answer: Yes
+Possible action: entity e code identificam o mesmo objeto (pais); continent e sub_region se sobrepoem parcialmente. Manter apenas uma representacao ou usar hierarquia.
+
+Are some variables highly correlated with each other?
+Answer: Yes
+Possible action: child_mortality_rate e fertility_rate_hist tem correlacao positiva forte (confirmado na Lecture 7). Em modelos lineares isso introduz multicolinearidade; considerar selecionar uma ou criar feature derivada.
+
+Does your dataset have many columns compared to the number of observations?
+Answer: No
+Possible action: Apenas 7 colunas para 22.260 observacoes. Sem problema de alta dimensionalidade no estado atual.
+
+Did encoding create many sparse columns?
+Answer: Not sure
+Possible action: Se fizer one-hot em entity (262 categorias) sim, ficaria esparso. Por isso preferir codificar continent (6 categorias) ou sub_region.
+
+Are some variables theoretically irrelevant to your research question?
+Answer: No
+Possible action: Todas as variaveis remanescentes apos limpeza sao relevantes para analisar mortalidade infantil e fertilidade.
+
+
+7. Connection with Future Machine Learning Models
+
+Would you use kNN, SVM, k-Means, DBSCAN, or PCA?
+Answer: Not sure
+Possible implication: Se for usar clustering para agrupar paises por perfil demografico, sim. Nesse caso, escalonamento e obrigatorio.
+
+Would you use linear or logistic regression?
+Answer: Yes
+Possible implication: A relacao linear forte entre as variaveis principais favorece regressao linear. Necessario verificar multicolinearidade e considerar transformacoes.
+
+Would you use decision trees?
+Answer: Not sure
+Possible implication: Arvores podem capturar bem o efeito nao-linear de year sobre as duas taxas. Escalonamento nao seria critico, mas a codificacao das categoricas continua importante.
+
+Would you use clustering?
+Answer: Not sure
+Possible implication: Faria sentido para agrupar paises por padrao historico de transicao demografica. Escalonamento e reducao de dimensionalidade seriam essenciais.
+
+Would you prioritize interpretability?
+Answer: Yes
+Possible implication: Contexto academico e analise demografica pedem modelos interpretaveis (regressao linear, arvores rasas). Preferir transformacoes simples e selecao de features sobre extracoes opacas.
+
+
+Final Decision
+
+Classification: Moderate need for feature engineering
+
+Justification: O dataset ja passou por limpeza significativa (interpolacao, imputacao, enriquecimento geografico), e as variaveis numericas principais (child_mortality_rate, fertility_rate_hist, year) sao limpas e interpretaveis. No entanto, ha trabalho relevante a fazer: codificacao das categoricas (continent, sub_region, entity), escalonamento por diferencas de escala, possivel transformacao logaritmica para reduzir assimetria de mortality, criacao de features temporais (decada, lag) e tratamento da multicolinearidade entre as duas variaveis principais.
+
+
+Short Written Answer
+
+ As operacoes mais relevantes seriam:
+  one-hot encoding para continent e sub_region, agrupamento de entity por regiao geografica, padronizacao das
+  variaveis numericas, transformacao logaritmica de child_mortality_rate, e criacao de features temporais (decada, lag por pais),
+   porque isso torna os dados compativeis com algoritmos sensiveis a escala e captura melhor a estrutura temporal por entidade.
+   Before applying machine learning algorithms, we should prioritize a codificacao das variaveis categoricas, o tratamento da
+   multicolinearidade entre fertility e mortality (selecionando uma como alvo e outra como preditor, ou criando uma
+   feature combinada) e a definicao clara de qual algoritmo sera usado, ja que isso determina o nivel de escalonamento e
+    transformacao necessarios.
+
